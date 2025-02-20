@@ -81,4 +81,4 @@ SOFTWARE.
 
 This Personal Financial Statement Generator is a lightweight, local tool to quickly generate, save, and export your financial data without exposing it to the cloud. Enjoy a practical solution to reduce repetitive tasks and keep your data secure!
 
-Built with an interactive dialogue with ChatGPT to push the current possibilities of local, disposible, open-source tools.open .
+Built with an interactive dialogue with ChatGPT to push the current possibilities of local, disposible, open-source tools.
