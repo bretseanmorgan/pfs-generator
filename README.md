@@ -30,8 +30,8 @@ A simple, local, browser-based Personal Financial Statement (PFS) generator buil
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/yourrepo.git
-   cd yourrepo
+   git clone https://github.com/bretseanmorgan/pfs-generator.git
+   cd pfs-generator
 
 2. **Run a Local Server:**
    ```bash
