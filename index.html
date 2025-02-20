@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Personal Financial Statement</title>
+
+  <!-- Tailwind CSS (Script CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf.js for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* pdfMode toggles the view in JS, so no special print CSS needed here */
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <div class="max-w-7xl mx-auto p-4" id="appContainer">
+    <!-- Header Container -->
+    <div class="mb-6" id="headerContainer"></div>
+
+    <!-- Personal Info -->
+    <div id="personalInfoSection" class="mb-6 bg-white p-4 rounded shadow"></div>
+
+    <!-- Contingent Liabilities -->
+    <div id="contingentLiabilitiesSection" class="mb-6 bg-white p-4 rounded shadow"></div>
+
+    <!-- Additional Questions -->
+    <div id="additionalQuestionsSection" class="mb-6 bg-white p-4 rounded shadow"></div>
+
+    <!-- Annual Income & Expenditures side by side -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8" id="incomeExpendituresContainer">
+      <!-- Annual Income -->
+      <div>
+        <h2 class="text-lg font-bold text-gray-700 mb-2">Annual Income</h2>
+        <section class="bg-white p-3 rounded shadow">
+          <table id="annualIncomeTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Annual Income</td>
+                <td class="px-2 py-1" colspan="2" id="totalAnnualIncome">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('annualIncome')"
+          >
+            Add Row
+          </button>
+        </section>
+      </div>
+
+      <!-- Annual Expenditures -->
+      <div>
+        <h2 class="text-lg font-bold text-gray-700 mb-2">Annual Expenditures</h2>
+        <section class="bg-white p-3 rounded shadow">
+          <table id="annualExpendituresTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Annual Expenditures</td>
+                <td class="px-2 py-1" colspan="2" id="totalAnnualExpenditures">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('annualExpenditures')"
+          >
+            Add Row
+          </button>
+        </section>
+      </div>
+    </div>
+
+    <!-- Two-column layout for Assets & Liabilities -->
+    <div id="pdfContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- ASSETS (Left Column) -->
+      <div>
+        <h2 class="text-lg font-bold text-gray-700 mb-2">Assets</h2>
+
+        <!-- Non-Qualified Assets -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Non-Qualified Assets</h3>
+          <table id="nonQualifiedAssetsTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Non-Qualified Assets</td>
+                <td class="px-2 py-1" colspan="2" id="totalNonQualifiedAssets">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('nonQualifiedAssets')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Retirement Assets -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Retirement Assets</h3>
+          <table id="retirementAssetsTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Retirement Assets</td>
+                <td class="px-2 py-1" colspan="2" id="totalRetirementAssets">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('retirementAssets')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Business Interests -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Business Interests</h3>
+          <table id="businessInterestsTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Business Interests</td>
+                <td class="px-2 py-1" colspan="2" id="totalBusinessInterests">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('businessInterests')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Real Estate Assets -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Real Estate Assets</h3>
+          <table id="realEstateAssetsTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Real Estate Assets</td>
+                <td class="px-2 py-1" colspan="2" id="totalRealEstateAssets">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('realEstateAssets')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Misc Assets -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Misc Assets</h3>
+          <table id="miscAssetsTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Misc Assets</td>
+                <td class="px-2 py-1" colspan="2" id="totalMiscAssets">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('miscAssets')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Total Assets -->
+        <section class="mb-4 p-3">
+          <h3 class="text-base font-semibold text-gray-700">
+            Total Assets:
+            <span id="totalAssets" class="ml-2">$0</span>
+          </h3>
+        </section>
+      </div>
+
+      <!-- LIABILITIES (Right Column) -->
+      <div>
+        <h2 class="text-lg font-bold text-gray-700 mb-2">Liabilities</h2>
+
+        <!-- Short-Term Liabilities -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Short-Term Liabilities</h3>
+          <table id="shortTermLiabilitiesTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Short-Term Liabilities</td>
+                <td class="px-2 py-1" colspan="2" id="totalShortTermLiabilities">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('shortTermLiabilities')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Long-Term Liabilities -->
+        <section class="mb-4 bg-white p-3 rounded shadow">
+          <h3 class="text-base font-semibold text-gray-600 mb-2">Long-Term Liabilities</h3>
+          <table id="longTermLiabilitiesTable" class="w-full mb-2 border border-gray-200">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900 font-semibold text-sm">
+                <th class="px-2 py-1 text-left">Description</th>
+                <th class="px-2 py-1 text-left">Amount</th>
+                <th class="px-2 py-1 text-left"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="bg-blue-50 text-sm font-semibold">
+                <td class="px-2 py-1">Total Long-Term Liabilities</td>
+                <td class="px-2 py-1" colspan="2" id="totalLongTermLiabilities">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+          <button
+            class="px-3 py-1 text-sm bg-blue-500 text-white rounded hide-in-pdf"
+            onclick="addRow('longTermLiabilities')"
+          >
+            Add Row
+          </button>
+        </section>
+
+        <!-- Total Liabilities -->
+        <section class="mb-4 p-3">
+          <h3 class="text-base font-semibold text-gray-700">
+            Total Liabilities:
+            <span id="totalLiabilities" class="ml-2">$0</span>
+          </h3>
+        </section>
+      </div>
+    </div>
+
+    <!-- Net Worth (full width) -->
+    <div class="bg-blue-50 border-t border-gray-300 mt-6 p-4 text-center">
+      <h2 class="text-lg font-bold text-blue-900">
+        Total Net Worth:
+        <span id="netWorth" class="ml-2">$0</span>
+      </h2>
+    </div>
+
+    <!-- Buttons row (visible in normal mode) -->
+    <div class="mt-4 flex flex-wrap gap-2 hide-in-pdf">
+      <button class="px-3 py-1 bg-purple-500 text-white rounded" onclick="exportJSON()">
+        Export JSON
+      </button>
+      <button class="px-3 py-1 bg-purple-500 text-white rounded" onclick="importJSON()">
+        Import JSON
+      </button>
+      <button class="px-3 py-1 bg-red-500 text-white rounded" onclick="exportPDF()">
+        Export PDF
+      </button>
+    </div>
+    <!-- Last Saved Timestamp -->
+    <div id="lastSavedAt" class="text-xs italic mt-2"></div>
+  </div>
+
+  <!-- Hidden file input for Import JSON -->
+  <input type="file" id="jsonFileInput" style="display: none;" accept=".json" />
+
+  <script>
+    // Full data structure, including new personal info fields, contingent liabilities, additional Qs
+    let data = {
+      header: {
+        name: "Your Name",
+        lender: "Your Lender",
+        date: new Date().toISOString().split('T')[0]
+      },
+      personalInfo: {
+        applicantName: "",
+        applicantPhone: "",
+        applicantSSN: "",
+        applicantEmail: "",
+        applicantEmployer: "",
+        applicantPosition: "",
+        applicantYears: "",
+        applicantHomeAddress: "",
+        applicantYearsAtAddress: "",
+        applicantDOB: "",
+
+        coApplicantName: "",
+        coApplicantPhone: "",
+        coApplicantSSN: "",
+        coApplicantEmail: "",
+        coApplicantEmployer: "",
+        coApplicantPosition: "",
+        coApplicantYears: "",
+        coApplicantHomeAddress: "",
+        coApplicantYearsAtAddress: "",
+        coApplicantDOB: ""
+      },
+      contingentLiabilities: {
+        coMakerEndorser: false,
+        suitsPending: false,
+        alimonySupport: false,
+        otherSpecialDebts: false,
+        explanation: ""
+      },
+      additionalQuestions: {
+        incomeTaxYear: "",
+        returnsAudited: false,
+        returnsAuditedYear: "",
+        declaredBankruptcy: false,
+        bankruptcyDetails: "",
+        haveWill: false,
+        willDetails: "",
+        numberOfDependents: 0,
+        hadFinancialPlan: false,
+        includedTwoYearsTaxReturns: false,
+        hasLineOfCredit: false,
+        lineOfCreditDetails: "",
+        anticipateInheritance: false,
+        inheritanceDetails: ""
+      },
+      annualIncome: [],
+      annualExpenditures: [],
+      nonQualifiedAssets: [],
+      retirementAssets: [],
+      businessInterests: [],
+      realEstateAssets: [],
+      miscAssets: [],
+      shortTermLiabilities: [],
+      longTermLiabilities: []
+    };
+
+    // pdfMode toggle: when true, show read-only
+    let pdfMode = false;
+
+    // RENDER
+    function render() {
+      renderHeader();
+      renderPersonalInfo();
+      renderContingentLiabilities();
+      renderAdditionalQuestions();
+      renderIncomeExpenditures();
+      renderTable("nonQualifiedAssetsTable", "nonQualifiedAssets");
+      renderTable("retirementAssetsTable", "retirementAssets");
+      renderTable("businessInterestsTable", "businessInterests");
+      renderTable("realEstateAssetsTable", "realEstateAssets");
+      renderTable("miscAssetsTable", "miscAssets");
+      renderTable("shortTermLiabilitiesTable", "shortTermLiabilities");
+      renderTable("longTermLiabilitiesTable", "longTermLiabilities");
+      updateTotals();
+
+      // Hide .hide-in-pdf if pdfMode
+      const hideEls = document.querySelectorAll(".hide-in-pdf");
+      hideEls.forEach(el => {
+        el.style.display = pdfMode ? "none" : "";
+      });
+    }
+
+    // 1) RENDER HEADER
+    function renderHeader() {
+      const headerContainer = document.getElementById("headerContainer");
+      if (!pdfMode) {
+        headerContainer.innerHTML = `
+          <h1 class="text-2xl font-bold text-blue-800">Personal Financial Statement</h1>
+          <div class="mt-2">
+            <label class="font-bold text-blue-800 mr-2">Name:</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1"
+              value="${data.header.name}"
+              oninput="updateHeader('name', this.value)"
+            >
+          </div>
+          <div class="mt-2">
+            <label class="font-bold text-blue-800 mr-2">Lender:</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1"
+              value="${data.header.lender}"
+              oninput="updateHeader('lender', this.value)"
+            >
+          </div>
+          <div class="mt-2">
+            <label class="font-bold text-blue-800 mr-2">Date:</label>
+            <input
+              type="date"
+              class="border border-gray-300 rounded px-2 py-1"
+              value="${data.header.date}"
+              oninput="updateHeader('date', this.value)"
+            >
+          </div>
+        `;
+      } else {
+        headerContainer.innerHTML = `
+          <h1 class="text-2xl font-bold text-blue-800">Personal Financial Statement</h1>
+          <h3 class="text-lg font-bold text-blue-800">${data.header.name}</h3>
+          <p class="text-sm font-bold text-blue-800">
+            Prepared for ${data.header.lender} on: ${data.header.date}
+          </p>
+        `;
+      }
+    }
+    function updateHeader(field, value) {
+      data.header[field] = value;
+    }
+
+    // 2) RENDER PERSONAL INFO
+    function renderPersonalInfo() {
+      const section = document.getElementById("personalInfoSection");
+      const p = data.personalInfo;
+      if (!pdfMode) {
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Personal Information</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Applicant Info -->
+            <div class="bg-gray-50 p-3 rounded">
+              <h3 class="text-base font-semibold text-gray-600 mb-2">Applicant</h3>
+              ${renderTextField("Name", "applicantName", p.applicantName)}
+              ${renderTextField("Phone", "applicantPhone", p.applicantPhone)}
+              ${renderTextField("SSN", "applicantSSN", p.applicantSSN)}
+              ${renderTextField("Email", "applicantEmail", p.applicantEmail)}
+              ${renderTextField("Employer", "applicantEmployer", p.applicantEmployer)}
+              ${renderTextField("Position", "applicantPosition", p.applicantPosition)}
+              ${renderTextField("No. of Years (Employer)", "applicantYears", p.applicantYears, "number")}
+              ${renderTextField("Home Address", "applicantHomeAddress", p.applicantHomeAddress)}
+              ${renderTextField("Years at Address", "applicantYearsAtAddress", p.applicantYearsAtAddress, "number")}
+              ${renderTextField("Date of Birth", "applicantDOB", p.applicantDOB, "date")}
+            </div>
+            <!-- Co-Applicant Info -->
+            <div class="bg-gray-50 p-3 rounded">
+              <h3 class="text-base font-semibold text-gray-600 mb-2">Co-Applicant</h3>
+              ${renderTextField("Name", "coApplicantName", p.coApplicantName)}
+              ${renderTextField("Phone", "coApplicantPhone", p.coApplicantPhone)}
+              ${renderTextField("SSN", "coApplicantSSN", p.coApplicantSSN)}
+              ${renderTextField("Email", "coApplicantEmail", p.coApplicantEmail)}
+              ${renderTextField("Employer", "coApplicantEmployer", p.coApplicantEmployer)}
+              ${renderTextField("Position", "coApplicantPosition", p.coApplicantPosition)}
+              ${renderTextField("No. of Years (Employer)", "coApplicantYears", p.coApplicantYears, "number")}
+              ${renderTextField("Home Address", "coApplicantHomeAddress", p.coApplicantHomeAddress)}
+              ${renderTextField("Years at Address", "coApplicantYearsAtAddress", p.coApplicantYearsAtAddress, "number")}
+              ${renderTextField("Date of Birth", "coApplicantDOB", p.coApplicantDOB, "date")}
+            </div>
+          </div>
+        `;
+      } else {
+        // PDF mode
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Personal Information</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-2">
+              <h3 class="text-base font-semibold text-gray-600 mb-2">Applicant</h3>
+              <p><strong>Name:</strong> ${p.applicantName}</p>
+              <p><strong>Phone:</strong> ${p.applicantPhone}</p>
+              <p><strong>SSN:</strong> ${p.applicantSSN}</p>
+              <p><strong>Email:</strong> ${p.applicantEmail}</p>
+              <p><strong>Employer:</strong> ${p.applicantEmployer}</p>
+              <p><strong>Position:</strong> ${p.applicantPosition}</p>
+              <p><strong>Years:</strong> ${p.applicantYears}</p>
+              <p><strong>Home Address:</strong> ${p.applicantHomeAddress}</p>
+              <p><strong>Years at Address:</strong> ${p.applicantYearsAtAddress}</p>
+              <p><strong>Date of Birth:</strong> ${p.applicantDOB}</p>
+            </div>
+            <div class="p-2">
+              <h3 class="text-base font-semibold text-gray-600 mb-2">Co-Applicant</h3>
+              <p><strong>Name:</strong> ${p.coApplicantName}</p>
+              <p><strong>Phone:</strong> ${p.coApplicantPhone}</p>
+              <p><strong>SSN:</strong> ${p.coApplicantSSN}</p>
+              <p><strong>Email:</strong> ${p.coApplicantEmail}</p>
+              <p><strong>Employer:</strong> ${p.coApplicantEmployer}</p>
+              <p><strong>Position:</strong> ${p.coApplicantPosition}</p>
+              <p><strong>Years:</strong> ${p.coApplicantYears}</p>
+              <p><strong>Home Address:</strong> ${p.coApplicantHomeAddress}</p>
+              <p><strong>Years at Address:</strong> ${p.coApplicantYearsAtAddress}</p>
+              <p><strong>Date of Birth:</strong> ${p.coApplicantDOB}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Helper for personal info text fields
+    function renderTextField(label, fieldName, value, type="text") {
+      return `
+        <label class="block mb-2">
+          <span class="text-sm font-semibold">${label}</span>
+          <input
+            type="${type}"
+            class="border border-gray-300 rounded w-full px-2 py-1"
+            value="${value}"
+            oninput="updatePersonalInfo('${fieldName}', this.value)"
+          >
+        </label>
+      `;
+    }
+    function updatePersonalInfo(field, value) {
+      data.personalInfo[field] = value;
+    }
+
+    // 3) RENDER CONTINGENT LIABILITIES
+    function renderContingentLiabilities() {
+      const section = document.getElementById("contingentLiabilitiesSection");
+      const c = data.contingentLiabilities;
+      if (!pdfMode) {
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Contingent Liabilities</h2>
+          <div class="mb-4">
+            ${renderYesNoRadio("Are you a co-maker or endorser on a note?", "coMakerEndorser", c.coMakerEndorser)}
+            ${renderYesNoRadio("Are there any suits or legal actions pending?", "suitsPending", c.suitsPending)}
+            ${renderYesNoRadio("Are you obligated to pay alimony or child support?", "alimonySupport", c.alimonySupport)}
+            ${renderYesNoRadio("Any other special debts or contingent liabilities?", "otherSpecialDebts", c.otherSpecialDebts)}
+          </div>
+          <label class="block mb-2">
+            <span class="text-sm font-semibold">If yes, explain:</span>
+            <textarea
+              class="border border-gray-300 rounded w-full px-2 py-1"
+              oninput="updateContingentLiabilities('explanation', this.value)"
+            >${c.explanation}</textarea>
+          </label>
+        `;
+      } else {
+        // PDF mode
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Contingent Liabilities</h2>
+          <p><strong>Co-maker or endorser on a note:</strong> ${c.coMakerEndorser ? "Yes" : "No"}</p>
+          <p><strong>Suits or legal actions pending:</strong> ${c.suitsPending ? "Yes" : "No"}</p>
+          <p><strong>Alimony/child support obligations:</strong> ${c.alimonySupport ? "Yes" : "No"}</p>
+          <p><strong>Other special debts:</strong> ${c.otherSpecialDebts ? "Yes" : "No"}</p>
+          <p><strong>Explanation:</strong> ${c.explanation}</p>
+        `;
+      }
+    }
+    function updateContingentLiabilities(field, value) {
+      data.contingentLiabilities[field] = value;
+    }
+
+    // 4) RENDER ADDITIONAL QUESTIONS
+    function renderAdditionalQuestions() {
+      const section = document.getElementById("additionalQuestionsSection");
+      const q = data.additionalQuestions;
+      if (!pdfMode) {
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Please Answer the Following Questions:</h2>
+
+          <label class="block mb-2">
+            <span class="text-sm font-semibold">1. Income tax returns filed through date:</span>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-2 w-20"
+              value="${q.incomeTaxYear}"
+              oninput="updateAdditionalQuestions('incomeTaxYear', this.value)"
+            >
+          </label>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">Are any returns being audited or contested?</span>
+            ${renderYesNoRadioInline("returnsAudited", q.returnsAudited)}
+            <label class="ml-2 text-sm">If yes, year(s)?</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-1 w-20"
+              value="${q.returnsAuditedYear}"
+              oninput="updateAdditionalQuestions('returnsAuditedYear', this.value)"
+            >
+          </div>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">2. Have you (either) ever declared bankruptcy or been a major owner in a declared bankruptcy?</span>
+            ${renderYesNoRadioInline("declaredBankruptcy", q.declaredBankruptcy)}
+            <label class="ml-2 text-sm">If yes, details:</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-1 w-64"
+              value="${q.bankruptcyDetails}"
+              oninput="updateAdditionalQuestions('bankruptcyDetails', this.value)"
+            >
+          </div>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">3. Have you drawn a will?</span>
+            ${renderYesNoRadioInline("haveWill", q.haveWill)}
+            <label class="ml-2 text-sm">If yes, name/executor/year drawn:</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-1 w-64"
+              value="${q.willDetails}"
+              oninput="updateAdditionalQuestions('willDetails', this.value)"
+            >
+          </div>
+
+          <label class="block mb-2">
+            <span class="text-sm font-semibold">4. Number of dependents (excluding self):</span>
+            <input
+              type="number"
+              class="border border-gray-300 rounded px-2 py-1 ml-2 w-20"
+              value="${q.numberOfDependents}"
+              oninput="updateAdditionalQuestions('numberOfDependents', this.value)"
+            >
+          </label>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">5. Have you ever had a financial plan prepared for you?</span>
+            ${renderYesNoRadioInline("hadFinancialPlan", q.hadFinancialPlan)}
+          </div>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">6. Did you include two years of federal tax returns?</span>
+            ${renderYesNoRadioInline("includedTwoYearsTaxReturns", q.includedTwoYearsTaxReturns)}
+          </div>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">7. Do you have a line of credit or unsecured credit facility at another institution?</span>
+            ${renderYesNoRadioInline("hasLineOfCredit", q.hasLineOfCredit)}
+            <label class="ml-2 text-sm">If so, how much, and name of banker?</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-1 w-64"
+              value="${q.lineOfCreditDetails}"
+              oninput="updateAdditionalQuestions('lineOfCreditDetails', this.value)"
+            >
+          </div>
+
+          <div class="mb-2">
+            <span class="text-sm font-semibold">8. Do you anticipate any substantial inheritances?</span>
+            ${renderYesNoRadioInline("anticipateInheritance", q.anticipateInheritance)}
+            <label class="ml-2 text-sm">If yes, please explain:</label>
+            <input
+              type="text"
+              class="border border-gray-300 rounded px-2 py-1 ml-1 w-64"
+              value="${q.inheritanceDetails}"
+              oninput="updateAdditionalQuestions('inheritanceDetails', this.value)"
+            >
+          </div>
+        `;
+      } else {
+        // PDF mode
+        section.innerHTML = `
+          <h2 class="text-lg font-bold text-gray-700 mb-2">Please Answer the Following Questions:</h2>
+          <p><strong>1. Income tax returns filed through date:</strong> ${q.incomeTaxYear}</p>
+          <p><strong>   Returns audited/contested?:</strong> ${q.returnsAudited ? "Yes" : "No"}
+             ${q.returnsAudited ? "(Year(s): " + q.returnsAuditedYear + ")" : ""}
+          </p>
+
+          <p><strong>2. Declared bankruptcy?:</strong> ${q.declaredBankruptcy ? "Yes" : "No"}
+             ${q.declaredBankruptcy ? "(Details: " + q.bankruptcyDetails + ")" : ""}
+          </p>
+
+          <p><strong>3. Have you drawn a will?:</strong> ${q.haveWill ? "Yes" : "No"}
+             ${q.haveWill ? "(Executor/Year: " + q.willDetails + ")" : ""}
+          </p>
+
+          <p><strong>4. Number of dependents (excluding self):</strong> ${q.numberOfDependents}</p>
+
+          <p><strong>5. Had a financial plan prepared?:</strong> ${q.hadFinancialPlan ? "Yes" : "No"}</p>
+          <p><strong>6. Included two years tax returns?:</strong> ${q.includedTwoYearsTaxReturns ? "Yes" : "No"}</p>
+
+          <p><strong>7. Line of credit at another institution?:</strong> ${q.hasLineOfCredit ? "Yes" : "No"}
+             ${q.hasLineOfCredit ? "(Details: " + q.lineOfCreditDetails + ")" : ""}
+          </p>
+
+          <p><strong>8. Anticipate inheritance?:</strong> ${q.anticipateInheritance ? "Yes" : "No"}
+             ${q.anticipateInheritance ? "(Details: " + q.inheritanceDetails + ")" : ""}
+          </p>
+        `;
+      }
+    }
+
+    // HELPER: YES/NO radio block (vertical)
+    function renderYesNoRadio(label, field, value) {
+      return `
+        <div class="mb-2">
+          <span class="text-sm font-semibold">${label}</span>
+          <div class="ml-4">
+            <label class="mr-2">
+              <input type="radio" name="${field}" value="true"
+                onclick="updateContingentLiabilities('${field}', true)"
+                ${value ? "checked" : ""}
+              >
+              Yes
+            </label>
+            <label>
+              <input type="radio" name="${field}" value="false"
+                onclick="updateContingentLiabilities('${field}', false)"
+                ${!value ? "checked" : ""}
+              >
+              No
+            </label>
+          </div>
+        </div>
+      `;
+    }
+
+    // HELPER: YES/NO radio inline for additionalQuestions
+    function renderYesNoRadioInline(field, currentVal) {
+      return `
+        <label class="ml-2">
+          <input type="radio" name="${field}" value="true"
+            onclick="updateAdditionalQuestions('${field}', true)"
+            ${currentVal ? "checked" : ""}
+          >
+          Yes
+        </label>
+        <label class="ml-2">
+          <input type="radio" name="${field}" value="false"
+            onclick="updateAdditionalQuestions('${field}', false)"
+            ${!currentVal ? "checked" : ""}
+          >
+          No
+        </label>
+      `;
+    }
+
+    function updateAdditionalQuestions(field, value) {
+      data.additionalQuestions[field] = value;
+    }
+
+    // 5) RENDER INCOME & EXPENDITURES
+    function renderIncomeExpenditures() {
+      // Just calls our standard "renderTable" for the two categories
+      renderTable("annualIncomeTable", "annualIncome");
+      renderTable("annualExpendituresTable", "annualExpenditures");
+      updateTotals();
+    }
+
+    // REUSABLE RENDER TABLE
+    function renderTable(tableId, category) {
+      const tableBody = document.querySelector(`#${tableId} tbody`);
+      if (!tableBody) return;
+      tableBody.innerHTML = "";
+
+      data[category].forEach((rowData, index) => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 text-sm";
+
+        // Description cell
+        const descCell = document.createElement("td");
+        descCell.className = "px-2 py-1";
+        if (!pdfMode) {
+          const descInput = document.createElement("input");
+          descInput.type = "text";
+          descInput.value = rowData.description || "";
+          descInput.className = "w-full border border-gray-300 rounded px-1 py-1";
+          descInput.oninput = () => updateRow(category, index, "description", descInput.value);
+          descCell.appendChild(descInput);
+        } else {
+          descCell.textContent = rowData.description || "";
+        }
+
+        // Amount cell
+        const amountCell = document.createElement("td");
+        amountCell.className = "px-2 py-1";
+        if (!pdfMode) {
+          const inputGroup = document.createElement("div");
+          inputGroup.className = "relative";
+
+          const dollarSign = document.createElement("span");
+          dollarSign.className = "absolute left-0 ml-2 top-1/2 transform -translate-y-1/2 text-gray-500";
+          dollarSign.textContent = "$";
+          inputGroup.appendChild(dollarSign);
+
+          const amountInput = document.createElement("input");
+          amountInput.type = "number";
+          amountInput.value = rowData.amount || 0;
+          amountInput.className = "w-full border border-gray-300 rounded px-4 py-1 pl-6";
+          amountInput.oninput = () => {
+            const val = parseFloat(amountInput.value) || 0;
+            updateRow(category, index, "amount", val);
+          };
+          inputGroup.appendChild(amountInput);
+          amountCell.appendChild(inputGroup);
+        } else {
+          amountCell.textContent = formatCurrency(rowData.amount || 0);
+        }
+
+        // Action cell
+        const actionCell = document.createElement("td");
+        actionCell.className = "px-2 py-1";
+        if (!pdfMode) {
+          const removeBtn = document.createElement("button");
+          removeBtn.textContent = "Remove";
+          removeBtn.className = "px-2 py-1 bg-red-400 text-white rounded";
+          removeBtn.onclick = () => removeRow(category, index);
+          actionCell.appendChild(removeBtn);
+        } else {
+          actionCell.textContent = "";
+        }
+
+        row.appendChild(descCell);
+        row.appendChild(amountCell);
+        row.appendChild(actionCell);
+        tableBody.appendChild(row);
+      });
+    }
+
+    // ADD / REMOVE ROW
+    function addRow(category) {
+      data[category].push({ description: "", amount: 0 });
+      render();
+    }
+    function removeRow(category, index) {
+      data[category].splice(index, 1);
+      render();
+    }
+
+    // UPDATE ROW
+    function updateRow(category, index, field, value) {
+      data[category][index][field] = value;
+      updateTotals();
+    }
+
+    // CALCULATE TOTALS
+    function updateTotals() {
+      // Annual Income
+      const totalAnnualIncome = sumArray(data.annualIncome);
+      const incomeEl = document.getElementById("totalAnnualIncome");
+      if (incomeEl) incomeEl.textContent = formatCurrency(totalAnnualIncome);
+
+      // Annual Expenditures
+      const totalAnnualExpenditures = sumArray(data.annualExpenditures);
+      const expendEl = document.getElementById("totalAnnualExpenditures");
+      if (expendEl) expendEl.textContent = formatCurrency(totalAnnualExpenditures);
+
+      // Assets
+      const totalNonQualifiedAssets = sumArray(data.nonQualifiedAssets);
+      document.getElementById("totalNonQualifiedAssets").textContent = formatCurrency(totalNonQualifiedAssets);
+
+      const totalRetirementAssets = sumArray(data.retirementAssets);
+      document.getElementById("totalRetirementAssets").textContent = formatCurrency(totalRetirementAssets);
+
+      const totalBusinessInterests = sumArray(data.businessInterests);
+      document.getElementById("totalBusinessInterests").textContent = formatCurrency(totalBusinessInterests);
+
+      const totalRealEstateAssets = sumArray(data.realEstateAssets);
+      document.getElementById("totalRealEstateAssets").textContent = formatCurrency(totalRealEstateAssets);
+
+      const totalMiscAssets = sumArray(data.miscAssets);
+      document.getElementById("totalMiscAssets").textContent = formatCurrency(totalMiscAssets);
+
+      const totalAssets =
+        totalNonQualifiedAssets +
+        totalRetirementAssets +
+        totalBusinessInterests +
+        totalRealEstateAssets +
+        totalMiscAssets;
+      document.getElementById("totalAssets").textContent = formatCurrency(totalAssets);
+
+      // Liabilities
+      const totalShortTermLiabilities = sumArray(data.shortTermLiabilities);
+      document.getElementById("totalShortTermLiabilities").textContent = formatCurrency(totalShortTermLiabilities);
+
+      const totalLongTermLiabilities = sumArray(data.longTermLiabilities);
+      document.getElementById("totalLongTermLiabilities").textContent = formatCurrency(totalLongTermLiabilities);
+
+      const totalLiabilities = totalShortTermLiabilities + totalLongTermLiabilities;
+      document.getElementById("totalLiabilities").textContent = formatCurrency(totalLiabilities);
+
+      // Net Worth
+      const netWorth = totalAssets - totalLiabilities;
+      document.getElementById("netWorth").textContent = formatCurrency(netWorth);
+    }
+
+    /////////////////////
+    // HELPER FUNCTIONS //
+    /////////////////////
+
+    /**
+     * Derive an AES-GCM key from password + salt using PBKDF2.
+     */
+    async function getKeyFromPassword(password, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        enc.encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+        {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 100000,
+        hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+    );
+    }
+
+    /**
+     * Encrypt plaintext (string) using AES-GCM. Returns base64(salt + IV + ciphertext).
+     */
+    async function encryptData(plaintext, password) {
+    const enc = new TextEncoder();
+    // Random salt & IV
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await getKeyFromPassword(password, salt);
+    const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        enc.encode(plaintext)
+    );
+    const ctArray = new Uint8Array(ciphertext);
+    // Combine salt + iv + ciphertext
+    const combined = new Uint8Array(salt.length + iv.length + ctArray.length);
+    combined.set(salt, 0);
+    combined.set(iv, salt.length);
+    combined.set(ctArray, salt.length + iv.length);
+    // Base64 encode
+    return btoa(String.fromCharCode(...combined));
+    }
+
+    /**
+     * Decrypt base64(salt + IV + ciphertext) with AES-GCM. Returns original plaintext.
+     */
+    async function decryptData(base64Str, password) {
+    const combined = Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
+    const salt = combined.slice(0, 16);
+    const iv = combined.slice(16, 28);
+    const ciphertext = combined.slice(28);
+    const key = await getKeyFromPassword(password, salt);
+    const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        ciphertext
+    );
+    return new TextDecoder().decode(decrypted);
+    }
+
+    /////////////////////////////////////////
+    // UPDATED EXPORT & IMPORT FUNCTIONS   //
+    /////////////////////////////////////////
+
+    /**
+     * Export JSON (Encrypted)
+     * 1) Prompt user for a password
+     * 2) Encrypt the JSON
+     * 3) Download the encrypted text as .json
+     */
+     async function exportJSON() {
+        // Prompt user for a password
+        const password = prompt(
+            "Enter a password to encrypt your data.\nLeave blank or cancel to export unencrypted."
+        );
+        if (password === null) {
+            // User clicked "Cancel" → do unencrypted
+            doUnencryptedExport();
+            return;
+        }
+        if (password.trim() === "") {
+            // User left it blank → do unencrypted
+            doUnencryptedExport();
+            return;
+        }
+        // Otherwise, encrypt
+        try {
+            const jsonStr = JSON.stringify(data, null, 2);
+            const encryptedBase64 = await encryptData(jsonStr, password);
+            // Download as .json (though it's really base64 text)
+            const fileName = "financial_data_encrypted.json";
+            const blob = new Blob([encryptedBase64], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            alert("Encryption failed: " + err.message);
+        }
+        }
+
+        /**
+         * Fallback unencrypted export
+         */
+        function doUnencryptedExport() {
+        const fileName = "financial_data.json";
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Import JSON (Encrypted)
+     * 1) Prompt user for the password
+     * 2) Decrypt the file contents
+     * 3) Parse and merge with your `data`
+     */
+     async function importJSON() {
+        const fileInput = document.getElementById("jsonFileInput");
+        fileInput.click();
+        fileInput.onchange = async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+            try {
+                const text = evt.target.result;
+
+                // 1) Try unencrypted parse first
+                try {
+                const parsed = JSON.parse(text);
+                mergeImportedData(parsed);
+                return;
+                } catch {
+                // It's not valid JSON → likely encrypted
+                }
+
+                // 2) If unencrypted parse fails, prompt for password & try decrypt
+                const password = prompt("This file may be encrypted. Enter the password to decrypt:");
+                if (!password) {
+                alert("No password provided. Import aborted.");
+                return;
+                }
+                // Decrypt
+                const decryptedStr = await decryptData(text, password);
+                // Parse
+                const parsedData = JSON.parse(decryptedStr);
+                mergeImportedData(parsedData);
+
+            } catch (err) {
+                alert("Import failed: " + err.message);
+            }
+            };
+            reader.readAsText(file);
+        };
+    }
+
+/**
+ * Merges or replaces your main data object with the imported data.
+ */
+function mergeImportedData(importedData) {
+  // Example: just replace top-level fields
+  data.header = importedData.header || data.header;
+  data.personalInfo = importedData.personalInfo || data.personalInfo;
+  data.contingentLiabilities = importedData.contingentLiabilities || data.contingentLiabilities;
+  data.additionalQuestions = importedData.additionalQuestions || data.additionalQuestions;
+  data.annualIncome = importedData.annualIncome || [];
+  data.annualExpenditures = importedData.annualExpenditures || [];
+  data.nonQualifiedAssets = importedData.nonQualifiedAssets || [];
+  data.retirementAssets = importedData.retirementAssets || [];
+  data.businessInterests = importedData.businessInterests || [];
+  data.realEstateAssets = importedData.realEstateAssets || [];
+  data.miscAssets = importedData.miscAssets || [];
+  data.shortTermLiabilities = importedData.shortTermLiabilities || [];
+  data.longTermLiabilities = importedData.longTermLiabilities || [];
+
+  render();
+  // alert("Data imported successfully.");
+}
+
+    // EXPORT JSON
+    function oldexportJSON() {
+      const fileName = "financial_data.json";
+      const jsonStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // IMPORT JSON
+    function oldimportJSON() {
+      const fileInput = document.getElementById("jsonFileInput");
+      fileInput.click();
+      fileInput.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const importedData = JSON.parse(e.target.result);
+            // Safely merge or replace
+            data.header = importedData.header || data.header;
+            data.personalInfo = importedData.personalInfo || data.personalInfo;
+            data.contingentLiabilities = importedData.contingentLiabilities || data.contingentLiabilities;
+            data.additionalQuestions = importedData.additionalQuestions || data.additionalQuestions;
+            data.annualIncome = importedData.annualIncome || [];
+            data.annualExpenditures = importedData.annualExpenditures || [];
+            data.nonQualifiedAssets = importedData.nonQualifiedAssets || [];
+            data.retirementAssets = importedData.retirementAssets || [];
+            data.businessInterests = importedData.businessInterests || [];
+            data.realEstateAssets = importedData.realEstateAssets || [];
+            data.miscAssets = importedData.miscAssets || [];
+            data.shortTermLiabilities = importedData.shortTermLiabilities || [];
+            data.longTermLiabilities = importedData.longTermLiabilities || [];
+            render();
+          } catch (err) {
+            alert("Invalid JSON file.");
+          }
+        };
+        reader.readAsText(file);
+      };
+    }
+
+    // EXPORT PDF
+    function exportPDF() {
+      pdfMode = true;
+      render();
+      // We'll capture everything except the header or the entire doc?
+      // Currently capturing #pdfContent + top sections
+      // If you want the entire page, you can do:
+      // const element = document.body;
+      const element = document.body;
+      html2pdf().from(element).save("personal_financial_statement.pdf").then(() => {
+        pdfMode = false;
+        render();
+      });
+    }
+
+    // HELPER: Summation
+    function sumArray(arr) {
+      return arr.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    }
+
+    // HELPER: Currency
+    function formatCurrency(num) {
+      return "$" + Number(num).toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+
+    // SAVE (hidden in UI) => localStorage
+    function saveData() {
+      localStorage.setItem("personalFinanceData", JSON.stringify(data));
+      updateLastSaved();
+    }
+
+    function updateLastSaved() {
+      const now = new Date();
+      const formatted = now.toLocaleString();
+      document.getElementById("lastSavedAt").textContent = "Last Saved at: " + formatted;
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
