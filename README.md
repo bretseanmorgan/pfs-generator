@@ -2,6 +2,10 @@
 
 A simple, local, browser-based Personal Financial Statement (PFS) generator built in HTML and JavaScript. I built this tool because I hate filling out Personal Financial Statements every time we need financing for a project or when a bank requires one for mortgage compliance. I also prefer keeping my sensitive data local and away from the cloud.
 
+## Demo Link
+
+You can use the hosted demo at https://bretseanmorgan.github.io/pfs-generator/ or run it locally in your own development environment.
+
 ## Why I Built It
 
 - **Reduce Repetitive Work:** No more manually filling out PFS forms every time financing is needed.
