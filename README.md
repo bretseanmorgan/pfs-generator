@@ -34,7 +34,8 @@ A simple, local, browser-based Personal Financial Statement (PFS) generator buil
    cd yourrepo
 
 2. **Run a Local Server:**
-   ```npx http-server .
+   ```bash
+   npx http-server .
 
 3. **Open the App:**
    Visit http://localhost:8080 (or the port provided by your server) in your browser.
@@ -76,4 +77,4 @@ SOFTWARE.
 
 This Personal Financial Statement Generator is a lightweight, local tool to quickly generate, save, and export your financial data without exposing it to the cloud. Enjoy a practical solution to reduce repetitive tasks and keep your data secure!
 
-Built with an interactive dialogue with ChatGPT to push the current possibilities of local, disposible, open-source tools.
+Built with an interactive dialogue with ChatGPT to push the current possibilities of local, disposible, open-source tools.open .
